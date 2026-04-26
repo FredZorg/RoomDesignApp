@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bedroom Planner</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #1a1a2e; color: #e0e0e0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+    header { background: #16213e; padding: 10px 20px; border-bottom: 1px solid #0f3460; flex-shrink: 0; }
+    header h1 { font-size: 1.2rem; color: #e94560; letter-spacing: 0.5px; }
+
+    .main { display: flex; flex: 1; overflow: hidden; }
+
+    .sidebar { width: 266px; background: #16213e; padding: 14px; overflow-y: auto; border-right: 1px solid #0f3460; display: flex; flex-direction: column; gap: 12px; flex-shrink: 0; }
+
+    .section { background: #0f3460; border-radius: 8px; padding: 12px; }
+    .section h3 { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; color: #e94560; margin-bottom: 10px; }
+
+    .field-row { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
+    .field-row label { font-size: 0.78rem; color: #aaa; min-width: 46px; }
+    .dim-group { display: flex; align-items: center; gap: 3px; }
+    .dim-group input[type="number"] { width: 42px; padding: 4px 5px; background: #1a1a2e; border: 1px solid #2a3a5e; border-radius: 4px; color: #e0e0e0; font-size: 0.82rem; text-align: center; }
+    .dim-group span { font-size: 0.72rem; color: #6a7a9a; }
+
+    input[type="text"] { width: 100%; padding: 5px 8px; background: #1a1a2e; border: 1px solid #2a3a5e; border-radius: 4px; color: #e0e0e0; font-size: 0.82rem; margin-bottom: 8px; }
+    input:focus { outline: none; border-color: #e94560; }
+    input[type="number"]:focus { outline: none; border-color: #e94560; }
+
+    button { cursor: pointer; border: none; border-radius: 4px; padding: 6px 12px; font-size: 0.8rem; transition: background 0.15s; }
+    .btn-primary { background: #e94560; color: white; width: 100%; padding: 7px; margin-top: 4px; }
+    .btn-primary:hover { background: #c73850; }
+    .btn-sm { background: #3a7bd5; color: white; padding: 3px 8px; font-size: 0.73rem; }
+    .btn-sm:hover { background: #2a5fa8; }
+    .btn-danger { background: #c0392b; color: white; padding: 3px 8px; font-size: 0.73rem; }
+    .btn-danger:hover { background: #962d22; }
+    .btn-save { background: #27ae60; color: white; padding: 5px 10px; font-size: 0.78rem; white-space: nowrap; flex-shrink: 0; transition: background 0.15s; }
+    .btn-save:hover { background: #1e8449; }
+    .btn-save.saved { background: #1e8449; }
+
+    .save-row { display: flex; gap: 6px; align-items: center; }
+    .save-row input[type="text"] { flex: 1; margin-bottom: 0; }
+
+    .saves-list { display: flex; flex-direction: column; gap: 5px; margin-top: 10px; }
+
+    .mode-row { display: flex; gap: 6px; }
+    .btn-mode { flex: 1; background: #1a1a2e; color: #8a9ab8; border: 1px solid #2a3a5e; padding: 7px 4px; font-size: 0.78rem; border-radius: 4px; }
+    .btn-mode:hover { background: #252545; color: #c0d0e8; }
+    .btn-mode.active { background: #1a3060; color: #fff; border-color: #4A90E2; box-shadow: 0 0 0 1px #4A90E2; }
+    .hint-text { font-size: 0.72rem; color: #5a6a8a; margin-bottom: 8px; line-height: 1.4; }
+
+    .items-list { display: flex; flex-direction: column; gap: 5px; }
+    .item-chip { display: flex; align-items: center; gap: 6px; background: #1a1a2e; border-radius: 4px; padding: 6px 8px; }
+    .item-dot { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+    .item-icon { font-size: 1rem; flex-shrink: 0; line-height: 1; }
+    .item-info { flex: 1; min-width: 0; }
+    .item-name { font-size: 0.8rem; color: #e0e0e0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .item-dims { font-size: 0.7rem; color: #7a8aa8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .item-actions { display: flex; gap: 3px; flex-shrink: 0; }
+
+    .empty-note { color: #4a5a7a; font-size: 0.78rem; }
+    .no-storage { color: #e2604a; font-size: 0.75rem; margin-bottom: 8px; }
+
+    .canvas-area { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 16px; background: #1a1a2e; overflow: hidden; }
+    canvas { border-radius: 4px; box-shadow: 0 4px 24px rgba(0,0,0,0.6); display: block; }
+    .canvas-meta { margin-top: 8px; font-size: 0.72rem; color: #4a5a7a; text-align: center; min-height: 16px; }
+
+    .sel-bar { background: #16213e; border-top: 1px solid #0f3460; padding: 7px 16px; display: flex; align-items: center; gap: 10px; font-size: 0.8rem; min-height: 38px; flex-shrink: 0; }
+    .sel-bar .hint { color: #4a5a7a; }
+    .sel-name { color: #4A90E2; font-weight: 600; }
+    .sel-dims { color: #6a7a9a; }
+  </style>
+</head>
+<body>
+
+<header><h1>Bedroom Planner</h1></header>
+
+<div class="main">
+  <div class="sidebar">
+
+    <!-- ── Layouts ── -->
+    <div class="section">
+      <h3>Layouts</h3>
+      <div id="noStorageNote" class="no-storage" style="display:none">
+        Storage unavailable — layouts won't be saved across sessions.
+      </div>
+      <div class="save-row">
+        <input type="text" id="layoutName" placeholder="Name this layout…" maxlength="50">
+        <button id="btnSave" class="btn-save" onclick="saveLayout()">Save</button>
+      </div>
+      <div class="saves-list" id="savesList">
+        <div class="empty-note">No saved layouts yet</div>
+      </div>
+    </div>
+
+    <!-- ── Room Size ── -->
+    <div class="section">
+      <h3>Room Size</h3>
+      <div class="field-row">
+        <label>Width</label>
+        <div class="dim-group">
+          <input type="number" id="roomWFt" min="0" max="200" placeholder="0">
+          <span>ft</span>
+          <input type="number" id="roomWIn" min="0" max="11" placeholder="0">
+          <span>in</span>
+        </div>
+      </div>
+      <div class="field-row">
+        <label>Length</label>
+        <div class="dim-group">
+          <input type="number" id="roomLFt" min="0" max="200" placeholder="0">
+          <span>ft</span>
+          <input type="number" id="roomLIn" min="0" max="11" placeholder="0">
+          <span>in</span>
+        </div>
+      </div>
+      <button class="btn-primary" onclick="setRoom()">Set Room</button>
+    </div>
+
+    <!-- ── Windows & Doors ── -->
+    <div class="section">
+      <h3>Windows &amp; Doors</h3>
+      <p class="hint-text">Click a mode then drag along any wall. Click again or press Esc to exit.</p>
+      <div class="mode-row">
+        <button id="btnWin"  class="btn-mode" onclick="toggleDraw('window')">⬜ Window</button>
+        <button id="btnDoor" class="btn-mode" onclick="toggleDraw('door')">🚪 Door</button>
+      </div>
+    </div>
+
+    <!-- ── Placed Windows & Doors ── -->
+    <div class="section">
+      <h3>Placed Windows &amp; Doors</h3>
+      <div class="items-list" id="featList">
+        <div class="empty-note">None placed yet</div>
+      </div>
+    </div>
+
+    <!-- ── Add Item ── -->
+    <div class="section">
+      <h3>Add Item</h3>
+      <input type="text" id="itemName" placeholder="Name (e.g. Bed, Desk…)" maxlength="30">
+      <div class="field-row">
+        <label>Width</label>
+        <div class="dim-group">
+          <input type="number" id="itemWFt" min="0" placeholder="0">
+          <span>ft</span>
+          <input type="number" id="itemWIn" min="0" max="11" placeholder="0">
+          <span>in</span>
+        </div>
+      </div>
+      <div class="field-row">
+        <label>Depth</label>
+        <div class="dim-group">
+          <input type="number" id="itemDFt" min="0" placeholder="0">
+          <span>ft</span>
+          <input type="number" id="itemDIn" min="0" max="11" placeholder="0">
+          <span>in</span>
+        </div>
+      </div>
+      <button class="btn-primary" onclick="addItem()">Add Item</button>
+    </div>
+
+    <!-- ── Items list ── -->
+    <div class="section" style="flex:1">
+      <h3>Items</h3>
+      <div class="items-list" id="itemsList">
+        <div class="empty-note">No items yet</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="canvas-area">
+    <canvas id="roomCanvas"></canvas>
+    <div class="canvas-meta" id="canvasMeta"></div>
+  </div>
+</div>
+
+<div class="sel-bar" id="selBar"></div>
+
+<script>
+  const canvas = document.getElementById('roomCanvas');
+  const ctx    = canvas.getContext('2d');
+
+  const COLORS = [
+    '#4A90E2','#E2604A','#4ACA7A','#E2A54A','#A04AE2',
+    '#4AD0C8','#E24A95','#8FC84A','#E27A4A','#4A70D0',
+  ];
+
+  // ── app state ─────────────────────────────────────────
+  let room  = { w: 0, h: 0 };
+  let scale = 1, ox = 0, oy = 0;
+
+  // items: { id, tid, cx, cy, angle }  — cx/cy = center in room inches
+  let templates   = [];
+  let placedItems = [];
+  let nextId      = 1;
+  let selectedId  = null;
+  let drag        = null;   // { id, mx0, my0, icx0, icy0 }
+  let rotDrag     = null;   // { id, cx, cy, startMouseAngle, startItemAngle }
+
+  // wall features: { id, type:'window'|'door', wall, start, end }
+  let wallFeatures   = [];
+  let nextFeatId     = 1;
+  let drawMode       = null;
+  let drawState      = null;
+  let selectedFeatId = null;
+
+  // ── persistence ───────────────────────────────────────
+  const STORAGE_CURRENT = 'bplanner_current';
+  const STORAGE_SAVES   = 'bplanner_saves';
+
+  const HAS_STORAGE = (() => {
+    try { localStorage.setItem('_t','1'); localStorage.removeItem('_t'); return true; }
+    catch { return false; }
+  })();
+
+  function getState() {
+    return { room, templates, placedItems, wallFeatures, nextId, nextFeatId };
+  }
+
+  function applyState(s) {
+    room         = s.room         || { w: 0, h: 0 };
+    templates    = s.templates    || [];
+    placedItems  = s.placedItems  || [];
+    wallFeatures = s.wallFeatures || [];
+    const maxItem = placedItems.length  ? Math.max(...placedItems.map(i => i.id))  + 1 : 1;
+    const maxFeat = wallFeatures.length ? Math.max(...wallFeatures.map(f => f.id)) + 1 : 1;
+    nextId     = Math.max(s.nextId     || 1, maxItem);
+    nextFeatId = Math.max(s.nextFeatId || 1, maxFeat);
+  }
+
+  function persistCurrent() {
+    if (!HAS_STORAGE) return;
+    try { localStorage.setItem(STORAGE_CURRENT, JSON.stringify(getState())); } catch {}
+  }
+
+  function restoreCurrent() {
+    if (!HAS_STORAGE) return;
+    try {
+      const raw = localStorage.getItem(STORAGE_CURRENT);
+      if (raw) applyState(JSON.parse(raw));
+    } catch {}
+  }
+
+  function getSaves() {
+    if (!HAS_STORAGE) return [];
+    try { return JSON.parse(localStorage.getItem(STORAGE_SAVES) || '[]'); } catch { return []; }
+  }
+
+  function setSaves(arr) {
+    if (!HAS_STORAGE) return;
+    try { localStorage.setItem(STORAGE_SAVES, JSON.stringify(arr)); } catch {}
+  }
+
+  // ── save / load layouts ───────────────────────────────
+  function saveLayout() {
+    const inp  = document.getElementById('layoutName');
+    const name = inp.value.trim() || 'Untitled';
+    const saves = getSaves();
+    const now   = new Date();
+    saves.push({
+      id:        Date.now(),
+      name,
+      savedAt:   now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+      roomDesc:  room.w ? `${fmt(room.w)} × ${fmt(room.h)}` : '',
+      itemCount: placedItems.length,
+      state:     getState(),
+    });
+    setSaves(saves);
+    inp.value = '';
+    renderSavesList();
+
+    const btn = document.getElementById('btnSave');
+    btn.textContent = 'Saved!';
+    btn.classList.add('saved');
+    setTimeout(() => { btn.textContent = 'Save'; btn.classList.remove('saved'); }, 1500);
+  }
+
+  function loadLayout(id) {
+    if (!confirm('Load this layout? Your current room will be replaced.')) return;
+    const save = getSaves().find(s => s.id === id);
+    if (!save) return;
+    applyState(save.state);
+    refreshAfterStateChange();
+    persistCurrent();
+  }
+
+  function deleteLayout(id) {
+    if (!confirm('Delete this saved layout?')) return;
+    setSaves(getSaves().filter(s => s.id !== id));
+    renderSavesList();
+  }
+
+  function renderSavesList() {
+    const list  = document.getElementById('savesList');
+    const saves = getSaves();
+    if (!saves.length) {
+      list.innerHTML = '<div class="empty-note">No saved layouts yet</div>';
+      return;
+    }
+    list.innerHTML = [...saves].reverse().map(s => {
+      const sub = [s.savedAt, s.roomDesc, s.itemCount ? `${s.itemCount} item${s.itemCount !== 1 ? 's' : ''}` : '']
+        .filter(Boolean).join(' · ');
+      return `<div class="item-chip">
+        <div class="item-info">
+          <div class="item-name">${escHtml(s.name)}</div>
+          <div class="item-dims">${escHtml(sub)}</div>
+        </div>
+        <div class="item-actions">
+          <button class="btn-sm"     onclick="loadLayout(${s.id})">Load</button>
+          <button class="btn-danger" onclick="deleteLayout(${s.id})">✕</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  // Sync all DOM after state is replaced (load or restore)
+  function refreshAfterStateChange() {
+    if (room.w > 0) {
+      recalcScale();
+      document.getElementById('roomWFt').value = Math.floor(room.w / 12);
+      document.getElementById('roomWIn').value = room.w % 12;
+      document.getElementById('roomLFt').value = Math.floor(room.h / 12);
+      document.getElementById('roomLIn').value = room.h % 12;
+      document.getElementById('canvasMeta').textContent =
+        `Room: ${fmt(room.w)} × ${fmt(room.h)}  |  Grid: 1 ft squares`;
+    } else {
+      ['roomWFt','roomWIn','roomLFt','roomLIn'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('canvasMeta').textContent = '';
+    }
+    selectedId = null; selectedFeatId = null;
+    drag = null; rotDrag = null;
+    drawMode = null; drawState = null;
+    document.getElementById('btnWin').classList.remove('active');
+    document.getElementById('btnDoor').classList.remove('active');
+    renderSidebar();
+    renderFeaturesList();
+    renderSavesList();
+    updateSelBar();
+    render();
+  }
+
+  // ── helpers ───────────────────────────────────────────
+  function toIn(ft, inn) { return (parseInt(ft) || 0) * 12 + (parseInt(inn) || 0); }
+
+  function fmt(inches) {
+    const ft = Math.floor(inches / 12), i = Math.round(inches % 12);
+    if (!ft) return `${i}"`;
+    if (!i)  return `${ft}'`;
+    return `${ft}'${i}"`;
+  }
+
+  function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+
+  function getMouse(e) {
+    const r = canvas.getBoundingClientRect();
+    return { mx: e.clientX - r.left, my: e.clientY - r.top };
+  }
+
+  function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function resizeCanvas() {
+    const area = document.querySelector('.canvas-area');
+    canvas.width  = area.clientWidth  - 32;
+    canvas.height = area.clientHeight - 40;
+    if (room.w > 0) { recalcScale(); render(); }
+    else render();
+  }
+
+  function recalcScale() {
+    const pad = 40;
+    scale = Math.min((canvas.width - pad*2) / room.w, (canvas.height - pad*2) / room.h);
+    ox = (canvas.width  - room.w * scale) / 2;
+    oy = (canvas.height - room.h * scale) / 2;
+  }
+
+  // ── item geometry ─────────────────────────────────────
+  function itemAABB(item) {
+    const t = templates[item.tid];
+    const a = (item.angle || 0) * Math.PI / 180;
+    const c = Math.abs(Math.cos(a)), s = Math.abs(Math.sin(a));
+    return { halfW: (c * t.w + s * t.h) / 2, halfH: (s * t.w + c * t.h) / 2 };
+  }
+
+  function clampItemCenter(item) {
+    const { halfW, halfH } = itemAABB(item);
+    item.cx = clamp(item.cx, halfW, room.w - halfW);
+    item.cy = clamp(item.cy, halfH, room.h - halfH);
+  }
+
+  function getRotHandle(item) {
+    const { halfH } = itemAABB(item);
+    return { x: ox + item.cx * scale, y: oy + item.cy * scale - halfH * scale - 20 };
+  }
+
+  function hitTestRotHandle(mx, my) {
+    if (selectedId === null) return false;
+    const item = placedItems.find(p => p.id === selectedId);
+    if (!item) return false;
+    const h = getRotHandle(item);
+    return Math.hypot(mx - h.x, my - h.y) < 10;
+  }
+
+  function hitTest(mx, my) {
+    for (let i = placedItems.length - 1; i >= 0; i--) {
+      const item = placedItems[i];
+      const t    = templates[item.tid];
+      const scx  = ox + item.cx * scale, scy = oy + item.cy * scale;
+      const a    = (item.angle || 0) * Math.PI / 180;
+      const cos  = Math.cos(-a), sin = Math.sin(-a);
+      const dx   = mx - scx, dy = my - scy;
+      const lx   = cos*dx - sin*dy, ly = sin*dx + cos*dy;
+      if (Math.abs(lx) <= t.w * scale / 2 && Math.abs(ly) <= t.h * scale / 2) return item;
+    }
+    return null;
+  }
+
+  // ── wall geometry ─────────────────────────────────────
+  function wallPt(wall, pos) {
+    switch (wall) {
+      case 'top':    return [ox + pos*scale,       oy              ];
+      case 'bottom': return [ox + pos*scale,       oy + room.h*scale];
+      case 'left':   return [ox,                   oy + pos*scale  ];
+      case 'right':  return [ox + room.w*scale,    oy + pos*scale  ];
+    }
+  }
+
+  function wallInward(wall) {
+    switch (wall) {
+      case 'top':    return [ 0,  1];
+      case 'bottom': return [ 0, -1];
+      case 'left':   return [ 1,  0];
+      case 'right':  return [-1,  0];
+    }
+  }
+
+  function detectWall(mx, my) {
+    const tol = 16, rx = mx - ox, ry = my - oy;
+    const rw  = room.w * scale, rh = room.h * scale;
+    const candidates = [
+      { wall:'top',    d: Math.abs(ry),      pos: rx, valid: rx >= -tol && rx <= rw+tol, len: room.w },
+      { wall:'bottom', d: Math.abs(ry - rh), pos: rx, valid: rx >= -tol && rx <= rw+tol, len: room.w },
+      { wall:'left',   d: Math.abs(rx),      pos: ry, valid: ry >= -tol && ry <= rh+tol, len: room.h },
+      { wall:'right',  d: Math.abs(rx - rw), pos: ry, valid: ry >= -tol && ry <= rh+tol, len: room.h },
+    ];
+    const hit = candidates.filter(c => c.valid && c.d < tol).sort((a,b) => a.d - b.d)[0];
+    if (!hit) return null;
+    return { wall: hit.wall, pos: clamp(hit.pos / scale, 0, hit.len) };
+  }
+
+  function projectToWall(wall, mx, my) {
+    const rx = mx - ox, ry = my - oy;
+    switch (wall) {
+      case 'top': case 'bottom': return clamp(rx / scale, 0, room.w);
+      case 'left': case 'right': return clamp(ry / scale, 0, room.h);
+    }
+  }
+
+  function distToSeg(px, py, x1, y1, x2, y2) {
+    const dx = x2-x1, dy = y2-y1;
+    if (!dx && !dy) return Math.hypot(px-x1, py-y1);
+    const t = clamp(((px-x1)*dx + (py-y1)*dy) / (dx*dx+dy*dy), 0, 1);
+    return Math.hypot(px - (x1+t*dx), py - (y1+t*dy));
+  }
+
+  function hitTestWallFeature(mx, my) {
+    for (let i = wallFeatures.length - 1; i >= 0; i--) {
+      const f = wallFeatures[i];
+      const [x1,y1] = wallPt(f.wall, f.start);
+      const [x2,y2] = wallPt(f.wall, f.end);
+      if (distToSeg(mx, my, x1, y1, x2, y2) < 9) return f;
+    }
+    return null;
+  }
+
+  // ── room setup ────────────────────────────────────────
+  function setRoom() {
+    const w = toIn(document.getElementById('roomWFt').value, document.getElementById('roomWIn').value);
+    const h = toIn(document.getElementById('roomLFt').value, document.getElementById('roomLIn').value);
+    if (!w || !h) { alert('Please enter valid room dimensions.'); return; }
+    room.w = w; room.h = h;
+    recalcScale();
+    document.getElementById('canvasMeta').textContent =
+      `Room: ${fmt(room.w)} × ${fmt(room.h)}  |  Grid: 1 ft squares`;
+    render();
+    persistCurrent();
+  }
+
+  // ── draw mode ─────────────────────────────────────────
+  function toggleDraw(mode) {
+    drawMode  = drawMode === mode ? null : mode;
+    drawState = null;
+    document.getElementById('btnWin').classList.toggle('active',  drawMode === 'window');
+    document.getElementById('btnDoor').classList.toggle('active', drawMode === 'door');
+    updateSelBar();
+    render();
+  }
+
+  // ── wall feature management ───────────────────────────
+  function removeFeat(id) {
+    wallFeatures = wallFeatures.filter(f => f.id !== id);
+    if (selectedFeatId === id) { selectedFeatId = null; updateSelBar(); }
+    renderFeaturesList();
+    render();
+    persistCurrent();
+  }
+
+  function flipDoor(id) {
+    const f = wallFeatures.find(f => f.id === id);
+    if (!f || f.type !== 'door') return;
+    [f.start, f.end] = [f.end, f.start];
+    render();
+    persistCurrent();
+  }
+
+  function deleteSelectedFeature() {
+    wallFeatures   = wallFeatures.filter(f => f.id !== selectedFeatId);
+    selectedFeatId = null;
+    renderFeaturesList();
+    updateSelBar();
+    render();
+    persistCurrent();
+  }
+
+  function renderFeaturesList() {
+    const list = document.getElementById('featList');
+    if (!wallFeatures.length) {
+      list.innerHTML = '<div class="empty-note">None placed yet</div>';
+      return;
+    }
+    list.innerHTML = wallFeatures.map(f => {
+      const icon  = f.type === 'window' ? '⬜' : '🚪';
+      const label = f.type === 'window' ? 'Window' : 'Door';
+      const len   = fmt(Math.abs(f.end - f.start));
+      const wall  = f.wall.charAt(0).toUpperCase() + f.wall.slice(1);
+      const flip  = f.type === 'door'
+        ? `<button class="btn-sm" onclick="flipDoor(${f.id})" title="Flip hinge">⇄</button>`
+        : '';
+      return `<div class="item-chip">
+        <span class="item-icon">${icon}</span>
+        <div class="item-info">
+          <div class="item-name">${label}</div>
+          <div class="item-dims">${wall} wall · ${len}</div>
+        </div>
+        <div class="item-actions">
+          ${flip}
+          <button class="btn-danger" onclick="removeFeat(${f.id})" title="Remove">✕</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  // ── item management ───────────────────────────────────
+  function addItem() {
+    const name = document.getElementById('itemName').value.trim();
+    const w    = toIn(document.getElementById('itemWFt').value, document.getElementById('itemWIn').value);
+    const h    = toIn(document.getElementById('itemDFt').value, document.getElementById('itemDIn').value);
+    if (!name)    { alert('Please enter an item name.'); return; }
+    if (!w || !h) { alert('Please enter valid item dimensions.'); return; }
+    templates.push({ name, w, h, color: COLORS[templates.length % COLORS.length] });
+    document.getElementById('itemName').value = '';
+    ['itemWFt','itemWIn','itemDFt','itemDIn'].forEach(id => document.getElementById(id).value = '');
+    renderSidebar();
+    persistCurrent();
+  }
+
+  function placeItem(tid) {
+    if (!room.w) { alert('Set room dimensions first.'); return; }
+    const t      = templates[tid];
+    const offset = placedItems.filter(p => p.tid === tid).length * 3;
+    const cx = clamp(t.w/2 + offset, t.w/2, room.w - t.w/2);
+    const cy = clamp(t.h/2 + offset, t.h/2, room.h - t.h/2);
+    placedItems.push({ tid, cx, cy, angle: 0, id: nextId++ });
+    render();
+    persistCurrent();
+  }
+
+  function removeTemplate(tid) {
+    placedItems = placedItems.filter(p => p.tid !== tid);
+    templates.splice(tid, 1);
+    placedItems.forEach(p => { if (p.tid > tid) p.tid--; });
+    if (selectedId !== null && !placedItems.find(p => p.id === selectedId)) selectedId = null;
+    renderSidebar();
+    updateSelBar();
+    render();
+    persistCurrent();
+  }
+
+  function renderSidebar() {
+    const list = document.getElementById('itemsList');
+    if (!templates.length) { list.innerHTML = '<div class="empty-note">No items yet</div>'; return; }
+    list.innerHTML = templates.map((t, i) => `
+      <div class="item-chip">
+        <div class="item-dot" style="background:${t.color}"></div>
+        <div class="item-info">
+          <div class="item-name">${escHtml(t.name)}</div>
+          <div class="item-dims">${fmt(t.w)} × ${fmt(t.h)}</div>
+        </div>
+        <div class="item-actions">
+          <button class="btn-sm"     onclick="placeItem(${i})"      title="Place in room">Place</button>
+          <button class="btn-danger" onclick="removeTemplate(${i})" title="Delete">✕</button>
+        </div>
+      </div>`).join('');
+  }
+
+  // ── selection bar ─────────────────────────────────────
+  function updateSelBar() {
+    const bar = document.getElementById('selBar');
+
+    if (drawMode) {
+      bar.innerHTML = `<span class="hint">Drawing mode: <strong style="color:#e0e0e0">${drawMode}</strong> — drag along a wall to place. Click the active button again or press Esc to exit.</span>`;
+      return;
+    }
+
+    if (selectedFeatId !== null) {
+      const f = wallFeatures.find(f => f.id === selectedFeatId);
+      if (f) {
+        const label = f.type === 'window' ? 'Window' : 'Door';
+        const flip  = f.type === 'door'
+          ? `<button class="btn-sm" onclick="flipDoor(${f.id})">⇄ Flip hinge</button>`
+          : '';
+        bar.innerHTML = `
+          <span class="hint">Selected:</span>
+          <span class="sel-name">${label}</span>
+          <span class="sel-dims">on ${f.wall} wall · ${fmt(Math.abs(f.end - f.start))} wide</span>
+          ${flip}
+          <button class="btn-danger" onclick="deleteSelectedFeature()">Remove</button>`;
+        return;
+      }
+    }
+
+    const item = placedItems.find(p => p.id === selectedId);
+    if (!item) {
+      bar.innerHTML = '<span class="hint">Click an item to select · Drag ↺ handle to rotate freely · Double-click for +90° · Click walls to select windows/doors</span>';
+      return;
+    }
+    const t   = templates[item.tid];
+    const deg = Math.round(((item.angle || 0) % 360 + 360) % 360);
+    bar.innerHTML = `
+      <span class="hint">Selected:</span>
+      <span class="sel-name">${escHtml(t.name)}</span>
+      <span class="sel-dims">${fmt(t.w)} × ${fmt(t.h)}${deg ? ` · ${deg}°` : ''}</span>
+      <button class="btn-sm"     onclick="rotateSelected()">+90°</button>
+      <button class="btn-danger" onclick="deleteSelected()">Remove</button>`;
+  }
+
+  function rotateSelected() {
+    const item = placedItems.find(p => p.id === selectedId);
+    if (!item) return;
+    item.angle = ((item.angle || 0) + 90) % 360;
+    clampItemCenter(item);
+    updateSelBar();
+    render();
+    persistCurrent();
+  }
+
+  function deleteSelected() {
+    placedItems = placedItems.filter(p => p.id !== selectedId);
+    selectedId  = null;
+    updateSelBar();
+    render();
+    persistCurrent();
+  }
+
+  // ── canvas events ─────────────────────────────────────
+  canvas.addEventListener('mousedown', e => {
+    if (!room.w) return;
+    const { mx, my } = getMouse(e);
+
+    if (drawMode) {
+      const hit = detectWall(mx, my);
+      if (hit) drawState = { wall: hit.wall, start: hit.pos, end: hit.pos };
+      return;
+    }
+
+    if (hitTestRotHandle(mx, my)) {
+      const item = placedItems.find(p => p.id === selectedId);
+      rotDrag = {
+        id: selectedId,
+        cx: ox + item.cx * scale, cy: oy + item.cy * scale,
+        startMouseAngle: Math.atan2(my - (oy + item.cy * scale), mx - (ox + item.cx * scale)),
+        startItemAngle:  item.angle || 0,
+      };
+      canvas.style.cursor = 'grabbing';
+      return;
+    }
+
+    const itemHit = hitTest(mx, my);
+    if (itemHit) {
+      selectedId     = itemHit.id;
+      selectedFeatId = null;
+      placedItems    = [...placedItems.filter(p => p.id !== itemHit.id), itemHit];
+      drag = { id: itemHit.id, mx0: mx, my0: my, icx0: itemHit.cx, icy0: itemHit.cy };
+      canvas.style.cursor = 'grabbing';
+    } else {
+      const featHit = hitTestWallFeature(mx, my);
+      selectedFeatId = featHit ? featHit.id : null;
+      selectedId     = null;
+    }
+    updateSelBar();
+    render();
+  });
+
+  canvas.addEventListener('mousemove', e => {
+    const { mx, my } = getMouse(e);
+
+    if (rotDrag) {
+      const item = placedItems.find(p => p.id === rotDrag.id);
+      if (item) {
+        const mouseAngle = Math.atan2(my - rotDrag.cy, mx - rotDrag.cx);
+        const delta = (mouseAngle - rotDrag.startMouseAngle) * 180 / Math.PI;
+        item.angle = e.shiftKey
+          ? Math.round((rotDrag.startItemAngle + delta) / 15) * 15
+          : rotDrag.startItemAngle + delta;
+        clampItemCenter(item);
+        updateSelBar();
+        render();
+      }
+      return;
+    }
+
+    if (drawState) {
+      drawState.end = projectToWall(drawState.wall, mx, my);
+      render();
+      return;
+    }
+
+    if (drawMode) {
+      canvas.style.cursor = detectWall(mx, my) ? 'crosshair' : 'default';
+      return;
+    }
+
+    if (!drag) {
+      if (room.w && hitTestRotHandle(mx, my)) canvas.style.cursor = 'grab';
+      else if (room.w && hitTest(mx, my))     canvas.style.cursor = 'grab';
+      else                                    canvas.style.cursor = 'default';
+      return;
+    }
+
+    const item     = placedItems.find(p => p.id === drag.id);
+    if (!item) return;
+    const { halfW, halfH } = itemAABB(item);
+    item.cx = clamp(drag.icx0 + (mx - drag.mx0) / scale, halfW, room.w - halfW);
+    item.cy = clamp(drag.icy0 + (my - drag.my0) / scale, halfH, room.h - halfH);
+    render();
+  });
+
+  canvas.addEventListener('mouseup', () => {
+    if (rotDrag) { rotDrag = null; canvas.style.cursor = 'default'; persistCurrent(); return; }
+    if (drawState) {
+      const len = Math.abs(drawState.end - drawState.start);
+      if (len >= 4) {
+        wallFeatures.push({
+          id:    nextFeatId++,
+          type:  drawMode,
+          wall:  drawState.wall,
+          start: Math.min(drawState.start, drawState.end),
+          end:   Math.max(drawState.start, drawState.end),
+        });
+        renderFeaturesList();
+        persistCurrent();
+      }
+      drawState = null;
+      render();
+      return;
+    }
+    if (drag) { drag = null; canvas.style.cursor = 'default'; persistCurrent(); return; }
+  });
+
+  canvas.addEventListener('mouseleave', () => {
+    if (rotDrag) { rotDrag = null; }
+    if (drawState) { drawState = null; render(); }
+    drag = null;
+    canvas.style.cursor = 'default';
+  });
+
+  canvas.addEventListener('dblclick', e => {
+    if (!room.w || drawMode) return;
+    const { mx, my } = getMouse(e);
+    if (hitTestRotHandle(mx, my)) return;
+    const hit = hitTest(mx, my);
+    if (hit) { selectedId = hit.id; rotateSelected(); }
+  });
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && drawMode) toggleDraw(drawMode);
+    if ((e.key === 'Delete' || e.key === 'Backspace') && !['INPUT','TEXTAREA'].includes(e.target.tagName)) {
+      if (selectedId !== null)          deleteSelected();
+      else if (selectedFeatId !== null) deleteSelectedFeature();
+    }
+  });
+
+  document.getElementById('layoutName').addEventListener('keydown', e => {
+    if (e.key === 'Enter') saveLayout();
+  });
+
+  // ── wall rendering ────────────────────────────────────
+  function drawWallSeg(wall, p1, p2) {
+    const [x1,y1] = wallPt(wall, p1);
+    const [x2,y2] = wallPt(wall, p2);
+    if (Math.hypot(x2-x1, y2-y1) < 0.5) return;
+    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+  }
+
+  function drawAllWalls() {
+    ctx.strokeStyle = '#4a3020';
+    ctx.lineWidth   = 4;
+    ctx.lineCap     = 'square';
+
+    ['top','right','bottom','left'].forEach(wall => {
+      const totalLen = (wall === 'top' || wall === 'bottom') ? room.w : room.h;
+      const gaps = wallFeatures
+        .filter(f => f.type === 'door' && f.wall === wall)
+        .map(f => ({ from: Math.min(f.start, f.end), to: Math.max(f.start, f.end) }))
+        .sort((a, b) => a.from - b.from);
+
+      if (drawState && drawMode === 'door' && drawState.wall === wall) {
+        gaps.push({ from: Math.min(drawState.start, drawState.end), to: Math.max(drawState.start, drawState.end) });
+        gaps.sort((a, b) => a.from - b.from);
+      }
+
+      let pos = 0;
+      for (const g of gaps) {
+        if (g.from > pos) drawWallSeg(wall, pos, g.from);
+        pos = g.to;
+      }
+      if (pos < totalLen) drawWallSeg(wall, pos, totalLen);
+    });
+  }
+
+  // ── feature rendering ─────────────────────────────────
+  function drawWindow(f, selected) {
+    const [x1,y1] = wallPt(f.wall, f.start);
+    const [x2,y2] = wallPt(f.wall, f.end);
+    const [inX,inY] = wallInward(f.wall);
+    const len = Math.hypot(x2-x1, y2-y1);
+    if (len < 2) return;
+
+    ctx.save();
+    ctx.lineCap     = 'butt';
+    ctx.strokeStyle = selected ? '#70E0FF' : '#85C8E8';
+    ctx.lineWidth   = 5;
+    ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(x1+inX*5, y1+inY*5); ctx.lineTo(x2+inX*5, y2+inY*5); ctx.stroke();
+
+    [[x1,y1],[x2,y2]].forEach(([px,py]) => {
+      ctx.beginPath();
+      ctx.moveTo(px-inX*3, py-inY*3); ctx.lineTo(px+inX*7, py+inY*7); ctx.stroke();
+    });
+    ctx.restore();
+  }
+
+  function drawDoor(f, selected) {
+    const [hx,hy] = wallPt(f.wall, f.start);
+    const [fx,fy] = wallPt(f.wall, f.end);
+    const [inX,inY] = wallInward(f.wall);
+    const len = Math.hypot(fx-hx, fy-hy);
+    if (len < 2) return;
+
+    ctx.save();
+    ctx.strokeStyle = selected ? '#FFB347' : '#C89050';
+    ctx.lineCap     = 'round';
+
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(hx,hy); ctx.lineTo(hx+inX*len, hy+inY*len); ctx.stroke();
+
+    const pa = Math.atan2(inY, inX), fa = Math.atan2(fy-hy, fx-hx);
+    const cw = ((fa - pa) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI);
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([4,3]);
+    ctx.beginPath(); ctx.arc(hx, hy, len, pa, fa, cw > Math.PI); ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.fillStyle = selected ? '#FFB347' : '#C89050';
+    ctx.beginPath(); ctx.arc(hx, hy, 3, 0, 2*Math.PI); ctx.fill();
+    ctx.restore();
+  }
+
+  // ── item rendering ────────────────────────────────────
+  function renderItem(item) {
+    const t   = templates[item.tid];
+    const scx = ox + item.cx * scale, scy = oy + item.cy * scale;
+    const pw  = t.w * scale, ph = t.h * scale;
+    const sel = item.id === selectedId;
+    const a   = (item.angle || 0) * Math.PI / 180;
+
+    ctx.save();
+    ctx.shadowColor = 'rgba(0,0,0,0.35)'; ctx.shadowBlur = sel ? 10 : 5;
+    ctx.shadowOffsetX = 2; ctx.shadowOffsetY = 2;
+    ctx.translate(scx, scy); ctx.rotate(a);
+
+    ctx.fillStyle = t.color + (sel ? 'dd' : '99');
+    ctx.fillRect(-pw/2, -ph/2, pw, ph);
+    ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0;
+
+    ctx.strokeStyle = sel ? '#ffffff' : t.color;
+    ctx.lineWidth   = sel ? 2.5 : 1.5;
+    ctx.strokeRect(-pw/2, -ph/2, pw, ph);
+
+    if (pw > 18 && ph > 12) {
+      ctx.save();
+      ctx.beginPath(); ctx.rect(-pw/2+2, -ph/2+2, pw-4, ph-4); ctx.clip();
+      const fs = Math.max(8, Math.min(13, pw / Math.max(t.name.length * 0.65, 1)));
+      ctx.fillStyle = sel ? '#ffffff' : '#1a1a2e';
+      ctx.font = `600 ${Math.floor(fs)}px -apple-system, sans-serif`;
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      const sub = ph > 28;
+      ctx.fillText(t.name, 0, sub ? -7 : 0);
+      if (sub) {
+        ctx.font = `${Math.floor(fs * 0.82)}px -apple-system, sans-serif`;
+        ctx.fillStyle = sel ? 'rgba(255,255,255,0.75)' : '#3a4a5a';
+        ctx.fillText(`${fmt(t.w)} × ${fmt(t.h)}`, 0, 8);
+      }
+      ctx.restore();
+    }
+    ctx.restore();
+  }
+
+  function drawRotHandle(item) {
+    const h    = getRotHandle(item);
+    const scx  = ox + item.cx * scale;
+    const { halfH } = itemAABB(item);
+    const topY = oy + item.cy * scale - halfH * scale;
+
+    ctx.save();
+    ctx.strokeStyle = 'rgba(74,144,226,0.5)';
+    ctx.lineWidth = 1; ctx.setLineDash([3,3]);
+    ctx.beginPath(); ctx.moveTo(scx, topY); ctx.lineTo(h.x, h.y+8); ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.fillStyle = '#4A90E2'; ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(h.x, h.y, 8, 0, 2*Math.PI); ctx.fill(); ctx.stroke();
+
+    ctx.fillStyle = '#ffffff'; ctx.font = '12px sans-serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('↺', h.x, h.y + 0.5);
+    ctx.restore();
+  }
+
+  // ── main render ───────────────────────────────────────
+  function render() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    if (!room.w) {
+      ctx.fillStyle = '#3a4a6a';
+      ctx.font = '15px -apple-system, sans-serif';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText('Enter room dimensions and click "Set Room" to begin', canvas.width/2, canvas.height/2);
+      return;
+    }
+
+    const rw = room.w * scale, rh = room.h * scale;
+    ctx.fillStyle = '#eee8db'; ctx.fillRect(ox, oy, rw, rh);
+
+    ctx.strokeStyle = 'rgba(180,160,130,0.35)'; ctx.lineWidth = 0.5;
+    for (let x = 0; x <= room.w; x += 12) {
+      const px = ox + x * scale;
+      ctx.beginPath(); ctx.moveTo(px, oy); ctx.lineTo(px, oy+rh); ctx.stroke();
+    }
+    for (let y = 0; y <= room.h; y += 12) {
+      const py = oy + y * scale;
+      ctx.beginPath(); ctx.moveTo(ox, py); ctx.lineTo(ox+rw, py); ctx.stroke();
+    }
+
+    drawAllWalls();
+    wallFeatures.filter(f => f.type === 'window').forEach(f => drawWindow(f, f.id === selectedFeatId));
+    wallFeatures.filter(f => f.type === 'door').forEach(f => drawDoor(f, f.id === selectedFeatId));
+
+    if (drawState && Math.abs(drawState.end - drawState.start) >= 1) {
+      ctx.globalAlpha = 0.55;
+      if (drawMode === 'window') drawWindow(drawState, false);
+      else                       drawDoor(drawState, false);
+      ctx.globalAlpha = 1;
+    }
+
+    ctx.fillStyle = '#7a8a9a'; ctx.font = '11px -apple-system, sans-serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+    ctx.fillText(fmt(room.w), ox + rw/2, oy - 5);
+    ctx.save();
+    ctx.translate(ox - 5, oy + rh/2); ctx.rotate(-Math.PI/2);
+    ctx.fillText(fmt(room.h), 0, 0);
+    ctx.restore();
+
+    placedItems.forEach(renderItem);
+
+    if (selectedId !== null && !drawMode) {
+      const sel = placedItems.find(p => p.id === selectedId);
+      if (sel) drawRotHandle(sel);
+    }
+  }
+
+  // ── init ──────────────────────────────────────────────
+  window.addEventListener('resize', resizeCanvas);
+  window.addEventListener('beforeunload', persistCurrent);
+
+  if (!HAS_STORAGE) {
+    document.getElementById('noStorageNote').style.display = 'block';
+  }
+
+  restoreCurrent();
+  resizeCanvas();
+  refreshAfterStateChange();
+</script>
+</body>
+</html>
