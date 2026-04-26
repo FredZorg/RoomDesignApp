@@ -41,6 +41,8 @@
 
     .save-row { display: flex; gap: 6px; align-items: center; }
     .save-row input[type="text"] { flex: 1; margin-bottom: 0; }
+    .btn-new { width: 100%; background: #1a2a4a; color: #7a9ac8; border: 1px solid #2a4a7e; padding: 6px; margin-top: 6px; font-size: 0.78rem; }
+    .btn-new:hover { background: #2a3a6a; color: #c0d8f0; }
 
     .saves-list { display: flex; flex-direction: column; gap: 5px; margin-top: 10px; }
 
@@ -89,6 +91,7 @@
         <input type="text" id="layoutName" placeholder="Name this layout…" maxlength="50">
         <button id="btnSave" class="btn-save" onclick="saveLayout()">Save</button>
       </div>
+      <button class="btn-new" onclick="newLayout()">+ New Layout</button>
       <div class="saves-list" id="savesList">
         <div class="empty-note">No saved layouts yet</div>
       </div>
@@ -314,6 +317,33 @@
         </div>
       </div>`;
     }).join('');
+  }
+
+  function newLayout() {
+    // Save current work (if anything exists) before clearing
+    if (room.w > 0 || placedItems.length || wallFeatures.length) {
+      const inp  = document.getElementById('layoutName');
+      const name = inp.value.trim() ||
+        `Layout – ${new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
+      const saves = getSaves();
+      const now   = new Date();
+      saves.push({
+        id:        Date.now(),
+        name,
+        savedAt:   now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+        roomDesc:  room.w ? `${fmt(room.w)} × ${fmt(room.h)}` : '',
+        itemCount: placedItems.length,
+        state:     getState(),
+      });
+      setSaves(saves);
+      inp.value = '';
+    }
+    // Reset everything
+    room = { w: 0, h: 0 };
+    templates = []; placedItems = []; wallFeatures = [];
+    nextId = 1; nextFeatId = 1;
+    refreshAfterStateChange();
+    persistCurrent();
   }
 
   // Sync all DOM after state is replaced (load or restore)
@@ -904,14 +934,20 @@
     ctx.lineWidth   = sel ? 2.5 : 1.5;
     ctx.strokeRect(-pw/2, -ph/2, pw, ph);
 
-    if (pw > 18 && ph > 12) {
+    // Draw text always facing upright: clip to item shape (in rotated coords,
+    // baked to screen space), then counter-rotate so text is horizontal.
+    const minDim = Math.min(pw, ph);
+    if (minDim > 14) {
       ctx.save();
-      ctx.beginPath(); ctx.rect(-pw/2+2, -ph/2+2, pw-4, ph-4); ctx.clip();
-      const fs = Math.max(8, Math.min(13, pw / Math.max(t.name.length * 0.65, 1)));
+      // Clip path is defined while still rotated — gets baked to screen coords.
+      ctx.beginPath(); ctx.rect(-pw/2 + 2, -ph/2 + 2, pw - 4, ph - 4); ctx.clip();
+      // Undo rotation: text is now axis-aligned, still centred on item.
+      ctx.rotate(-a);
+      const fs = Math.max(8, Math.min(13, minDim / Math.max(t.name.length * 0.65, 1)));
       ctx.fillStyle = sel ? '#ffffff' : '#1a1a2e';
       ctx.font = `600 ${Math.floor(fs)}px -apple-system, sans-serif`;
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      const sub = ph > 28;
+      const sub = minDim > 28;
       ctx.fillText(t.name, 0, sub ? -7 : 0);
       if (sub) {
         ctx.font = `${Math.floor(fs * 0.82)}px -apple-system, sans-serif`;
